@@ -4,72 +4,93 @@ include("_includes/config.inc");
 include("_includes/dbconnect.inc");
 include("_includes/functions.inc");
 
-
-// check logged in
 if (isset($_SESSION['id'])) {
 
-   echo template("templates/partials/header.php");
-   echo template("templates/partials/nav.php");
+    echo template("templates/partials/header.php");
+    
 
-   // if the form has been submitted
-   if (isset($_POST['submit'])) {
+    $studentId = $_SESSION['id'];
+    $message = "";
 
-      // build an sql statment to update the student details
-      $sql = "update student set firstname ='" . $_POST['txtfirstname'] . "',";
-      $sql .= "lastname ='" . $_POST['txtlastname']  . "',";
-      $sql .= "house ='" . $_POST['txthouse']  . "',";
-      $sql .= "town ='" . $_POST['txttown']  . "',";
-      $sql .= "county ='" . $_POST['txtcounty']  . "',";
-      $sql .= "country ='" . $_POST['txtcountry']  . "',";
-      $sql .= "postcode ='" . $_POST['txtpostcode']  . "' ";
-      $sql .= "where studentid = '" . $_SESSION['id'] . "';";
-      $result = mysqli_query($conn,$sql);
+    // Form submission
+    if (isset($_POST['submit'])) {
+        $sql = "UPDATE student SET 
+                firstname = '" . mysqli_real_escape_string($conn, $_POST['txtfirstname']) . "',
+                lastname = '" . mysqli_real_escape_string($conn, $_POST['txtlastname']) . "',
+                house = '" . mysqli_real_escape_string($conn, $_POST['txthouse']) . "',
+                town = '" . mysqli_real_escape_string($conn, $_POST['txttown']) . "',
+                county = '" . mysqli_real_escape_string($conn, $_POST['txtcounty']) . "',
+                country = '" . mysqli_real_escape_string($conn, $_POST['txtcountry']) . "',
+                postcode = '" . mysqli_real_escape_string($conn, $_POST['txtpostcode']) . "'
+                WHERE studentid = '$studentId'";
 
-      $data['content'] = "<p>Your details have been updated</p>";
+        $result = mysqli_query($conn, $sql);
+        $message = "<div class='p-4 mb-4 bg-green-100 border border-green-300 text-green-800 rounded'>✅ Your details have been updated successfully.</div>";
+    }
 
-   }
-   else {
-      // Build a SQL statment to return the student record with the id that
-      // matches that of the session variable.
-      $sql = "select * from student where studentid='". $_SESSION['id'] . "';";
-      $result = mysqli_query($conn,$sql);
-      $row = mysqli_fetch_array($result);
+    // Retrieve student record
+    $sql = "SELECT * FROM student WHERE studentid = '$studentId'";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
 
-      // using <<<EOD notation to allow building of a multi-line string
-      // see http://stackoverflow.com/questions/6924193/what-is-the-use-of-eod-in-php for info
-      // also http://stackoverflow.com/questions/8280360/formatting-an-array-value-inside-a-heredoc
-      $data['content'] = <<<EOD
+    ?>
 
-   <h2>My Details</h2>
-   <form name="frmdetails" action="" method="post">
-   First Name :
-   <input name="txtfirstname" type="text" value="{$row['firstname']}" /><br/>
-   Surname :
-   <input name="txtlastname" type="text"  value="{$row['lastname']}" /><br/>
-   Number and Street :
-   <input name="txthouse" type="text"  value="{$row['house']}" /><br/>
-   Town :
-   <input name="txttown" type="text"  value="{$row['town']}" /><br/>
-   County :
-   <input name="txtcounty" type="text"  value="{$row['county']}" /><br/>
-   Country :
-   <input name="txtcountry" type="text"  value="{$row['country']}" /><br/>
-   Postcode :
-   <input name="txtpostcode" type="text"  value="{$row['postcode']}" /><br/>
-   <input type="submit" value="Save" name="submit"/>
-   </form>
+    <div class="max-w-3xl mx-auto bg-white shadow-md rounded p-8 mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">My Details</h2>
 
-EOD;
+        <?php echo $message; ?>
 
-   }
+        <form method="POST" action="" class="space-y-5">
+            <div>
+                <label class="block font-medium">First Name</label>
+                <input type="text" name="txtfirstname" value="<?php echo htmlspecialchars($row['firstname']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+            </div>
 
-   // render the template
-   echo template("templates/default.php", $data);
+            <div>
+                <label class="block font-medium">Surname</label>
+                <input type="text" name="txtlastname" value="<?php echo htmlspecialchars($row['lastname']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+            </div>
+
+            <div>
+                <label class="block font-medium">Number and Street</label>
+                <input type="text" name="txthouse" value="<?php echo htmlspecialchars($row['house']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-medium">Town</label>
+                    <input type="text" name="txttown" value="<?php echo htmlspecialchars($row['town']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+                </div>
+
+                <div>
+                    <label class="block font-medium">County</label>
+                    <input type="text" name="txtcounty" value="<?php echo htmlspecialchars($row['county']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-medium">Country</label>
+                    <input type="text" name="txtcountry" value="<?php echo htmlspecialchars($row['country']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+                </div>
+
+                <div>
+                    <label class="block font-medium">Postcode</label>
+                    <input type="text" name="txtpostcode" value="<?php echo htmlspecialchars($row['postcode']); ?>" class="mt-1 block w-full border border-gray-300 rounded px-4 py-2" />
+                </div>
+            </div>
+
+            <div class="text-right">
+                <input type="submit" name="submit" value="Save" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow" />
+            </div>
+        </form>
+    </div>
+
+    <?php
+    echo template("templates/partials/footer.php");
 
 } else {
-   header("Location: index.php");
+    header("Location: index.php");
+    exit;
 }
-
-echo template("templates/partials/footer.php");
-
 ?>

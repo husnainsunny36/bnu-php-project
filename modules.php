@@ -1,39 +1,53 @@
 <?php
 
-   include("_includes/config.inc");
-   include("_includes/dbconnect.inc");
-   include("_includes/functions.inc");
+include("_includes/config.inc");
+include("_includes/dbconnect.inc");
+include("_includes/functions.inc");
 
+// Check if the user is logged in
+if (isset($_SESSION['id'])) {
 
-   // check logged in
-   if (isset($_SESSION['id'])) {
+    echo template("templates/partials/header.php");
+   
 
-      echo template("templates/partials/header.php");
-      echo template("templates/partials/nav.php");
+    // Fetch student modules
+    $sql = "SELECT * FROM studentmodules sm, module m 
+            WHERE m.modulecode = sm.modulecode 
+            AND sm.studentid = '" . $_SESSION['id'] . "'";
 
-      // Build SQL statment that selects a student's modules
-      $sql = "select * from studentmodules sm, module m where m.modulecode = sm.modulecode and sm.studentid = '" . $_SESSION['id'] ."';";
+    $result = mysqli_query($conn, $sql);
+    ?>
 
-      $result = mysqli_query($conn,$sql);
+    <div class="max-w-5xl mx-auto bg-white shadow-md rounded p-6 mt-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">My Modules</h2>
 
-      // prepare page content
-      $data['content'] .= "<table border='1'>";
-      $data['content'] .= "<tr><th colspan='5' align='center'>Modules</th></tr>";
-      $data['content'] .= "<tr><th>Code</th><th>Type</th><th>Level</th></tr>";
-      // Display the modules within the html table
-      while($row = mysqli_fetch_array($result)) {
-         $data['content'] .= "<tr><td> $row[modulecode] </td><td> $row[name] </td>";
-         $data['content'] .= "<td> $row[level] </td></tr>";
-      }
-      $data['content'] .= "</table>";
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 divide-y divide-gray-100">
+                <thead class="bg-gray-100 text-gray-700 text-sm uppercase tracking-wider">
+                    <tr>
+                        <th class="px-4 py-3 text-left border">Code</th>
+                        <th class="px-4 py-3 text-left border">Module Name</th>
+                        <th class="px-4 py-3 text-left border">Level</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-800 divide-y divide-gray-100">
+                    <?php while ($row = mysqli_fetch_array($result)) : ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 border"><?php echo htmlspecialchars($row['modulecode']); ?></td>
+                            <td class="px-4 py-2 border"><?php echo htmlspecialchars($row['name']); ?></td>
+                            <td class="px-4 py-2 border"><?php echo htmlspecialchars($row['level']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-      // render the template
-      echo template("templates/default.php", $data);
+    <?php
+    echo template("templates/partials/footer.php");
 
-   } else {
-      header("Location: index.php");
-   }
-
-   echo template("templates/partials/footer.php");
-
+} else {
+    header("Location: index.php");
+    exit;
+}
 ?>
